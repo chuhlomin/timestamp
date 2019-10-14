@@ -1,0 +1,195 @@
+<html>
+<head>
+    <title>Timestamp</title>
+    <style>
+      body {
+        font-family: SF Mono, Pragmata Pro, monospace;
+      }
+      #app {
+        width: 600px;
+        margin: 0rem auto;
+        padding: 1rem;
+      }
+      input {
+        font-family: SF Mono, Pragmata Pro, monospace;
+        font-size: 2rem;
+        width: 100%;
+      }
+      input:invalid {
+        box-shadow: 0 0px 3px red;
+      }
+      button {
+        font-family: SF Mono, Pragmata Pro, monospace;
+        font-size: 1rem;
+      }
+      div + div {
+        margin-top: 1rem;
+      }
+      span {
+        display: block;
+        margin-bottom: 0.33rem;
+        color: #999;
+      }
+
+      /* night mode */
+      body {
+        background: #222;
+      }
+      input {
+        background: black;
+        border: 1px solid #666;
+        color: #eee;
+      }
+    </style>
+</head>
+<body>
+<div id="app">
+  <div>
+    <label for="unix"><span>Unix Timestamp:</span></label>
+    <input id="unix" v-model="unix" v-on:keyup="inputChangedUnix" required pattern="-?[\d]+(.[\d]+)?">
+  </div>
+  <div>
+    <label for="unixms"><span>Unix Timestamp with Milliseconds:</span></label>
+    <input id="unixms" v-model="unixms" v-on:keyup="inputChangedUnixMs" required pattern="-?\d+">
+  </div>
+  <div>
+    <label for="utc"><span>UTC:</span></label>
+    <input id="utc" v-model="utc" v-on:keyup="inputChangedUTC" required pattern="[a-zA-Z]+, \d{1,2} [a-zA-Z]{3} \d{1,4} \d{2}:\d{2}:\d{2}([ a-zA-Z]+)?">
+  </div>
+  <div>
+    <label for="iso"><span>ISO:</span></label>
+    <input id="iso" v-model="iso" v-on:keyup="inputChangedISO" required pattern="\d{1,4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z">
+  </div>
+  <div>
+  <button v-on:click="now">Now</button>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script>
+var ts = new Date();
+
+var formatUnix = function(unix) {
+  var parts = unix.split(".")
+  if (parts.length != 2) {
+    return unix
+  }
+  while (parts[1].length < 3) {
+    parts[1] += '0'
+  }
+  return parts.join('.')
+};
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    unix: formatUnix((ts.getTime()/1000).toString()),
+    unixms: ts.getTime().toString(),
+    utc: ts.toUTCString(),
+    iso: ts.toISOString()
+  },
+  methods: {
+    inputChangedUnix: function (e) {
+      if (!e.target.checkValidity()) {
+        return
+      }
+
+      var parts = this.unix.split(".")
+
+      ts = new Date();
+      ts.setTime(parts[0] * 1000 + (parts[2]|0));
+      
+      this.utc = ts.toUTCString();
+      this.unixms = ts.getTime().toString();
+      this.iso = ts.toISOString();
+    },
+    inputChangedUnixMs: function (e) {
+      if (!e.target.checkValidity()) {
+        return
+      }
+
+      ts = new Date();
+      ts.setTime(this.unixms);
+      
+      this.unix = formatUnix((ts.getTime()/1000).toString());
+      this.utc = ts.toUTCString();
+      this.iso = ts.toISOString();
+    },
+    inputChangedUTC: function(e) {
+      var parts = e.target.value.split(" ");
+      var hourParts = parts[4].split(":");
+      
+      ts = new Date(Date.UTC(
+        parts[3],
+        this.getMonthByString(parts[2]),
+        parts[1],
+        hourParts[0],
+        hourParts[1],
+        hourParts[2],
+        0,
+      ))
+
+      this.unix = formatUnix((ts.getTime()/1000).toString());
+      this.unixms = ts.getTime().toString();
+      this.iso = ts.toISOString();
+    },
+    inputChangedISO: function(e) {
+      var parts = e.target.value.split("T");
+      var dateParts = parts[0].split("-");
+      var hourParts = parts[1].split(":");
+      var minutesParts = hourParts[2].split(".");
+
+      ts = new Date(Date.UTC(
+        dateParts[0],
+        (dateParts[1]-1),
+        dateParts[2],
+        hourParts[0],
+        hourParts[1],
+        minutesParts[0],
+        minutesParts[1].substring(0, 3),
+      ))
+
+      this.unix = formatUnix((ts.getTime()/1000).toString());
+      this.unixms = ts.getTime().toString();
+      this.utc = ts.toUTCString();
+    },
+    now: function() {
+      ts = new Date();
+
+      this.unix = formatUnix((ts.getTime()/1000).toString());
+      this.unixms = ts.getTime().toString();
+      this.utc = ts.toUTCString();
+      this.iso = ts.toISOString();
+    },
+    getMonthByString: function(month) {
+      switch (month.toUpperCase()) {
+        case "JAN":
+          return 0;
+        case "FEB":
+          return 1;
+        case "MAR":
+          return 2;
+        case "APR":
+          return 3;
+        case "MAY":
+          return 4;
+        case "JUN":
+          return 5;
+        case "JUL":
+          return 6;
+        case "AUG":
+          return 7;
+        case "SEP":
+          return 8;
+        case "OCT":
+          return 9;
+        case "NOV":
+          return 10;
+        case "DEC":
+          return 11;
+      }
+    }
+  }
+})
+</script>
+</body>
+</html>
