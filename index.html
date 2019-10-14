@@ -38,6 +38,7 @@
         top: 0;
         bottom: 0;
         left: 100%;
+        margin-left: 5px;
       }
       .actions button {
         display: block;
@@ -47,7 +48,7 @@
         background-size: 42px 42px;
         text-indent: -9999px;
         border: none;
-        border-radius: 0 2px 2px 0;
+        border-radius: 4px;
         transition: 0.33s ease background;
       }
       .actions button:hover {
@@ -228,9 +229,13 @@ var app = new Vue({
       this.iso = ts.toISOString();
     },
     copy: function(input) {
-      document.getElementById(input).select();
+      var el = document.getElementById(input)
+      var selectionStart = el.selectionStart
+      var selectionEnd = el.selectionEnd
+      el.select();
       document.execCommand("copy");
-      document.getElementById(input).selectionStart = document.getElementById(input).selectionEnd;
+      el.selectionStart = selectionStart;
+      el.selectionEnd = selectionEnd;
     },
     getMonthByString: function(month) {
       switch (month.toUpperCase()) {
