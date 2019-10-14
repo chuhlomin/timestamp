@@ -26,9 +26,32 @@
         margin-top: 1rem;
       }
       span {
-        display: block;
+        display: inline-block;
         margin-bottom: 0.33rem;
         color: #999;
+      }
+      .input {
+        position: relative;
+      }
+      .actions {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 100%;
+      }
+      .actions button {
+        display: block;
+        height: 100%;
+        width: 42px;
+        background: #222 url("./copy_dark.png") no-repeat center center;
+        background-size: 42px 42px;
+        text-indent: -9999px;
+        border: none;
+        border-radius: 0 2px 2px 0;
+        transition: 0.33s ease background;
+      }
+      .actions button:hover {
+        background-color: #444;
       }
 
       /* night mode */
@@ -46,19 +69,31 @@
 <div id="app">
   <div>
     <label for="unix"><span>Unix Timestamp:</span></label>
-    <input id="unix" v-model="unix" v-on:keyup="inputChangedUnix" required pattern="-?[\d]+(.[\d]+)?">
+    <div class="input">
+      <input id="unix" v-model="unix" v-on:keyup="inputChangedUnix" required pattern="-?[\d]+(.[\d]+)?">
+      <div class="actions"><button v-on:click="copy('unix')" class="copy">Copy</button></div>
+    </div>
   </div>
   <div>
     <label for="unixms"><span>Unix Timestamp with Milliseconds:</span></label>
-    <input id="unixms" v-model="unixms" v-on:keyup="inputChangedUnixMs" required pattern="-?\d+">
+    <div class="input">
+      <input id="unixms" v-model="unixms" v-on:keyup="inputChangedUnixMs" required pattern="-?\d+">
+      <div class="actions"><button v-on:click="copy('unixms')" class="copy">Copy</button></div>
+    </div>
   </div>
   <div>
     <label for="utc"><span>UTC:</span></label>
-    <input id="utc" v-model="utc" v-on:keyup="inputChangedUTC" required pattern="[a-zA-Z]+, \d{1,2} [a-zA-Z]{3} \d{1,4} \d{2}:\d{2}:\d{2}([ a-zA-Z]+)?">
+    <div class="input">
+      <input id="utc" v-model="utc" v-on:keyup="inputChangedUTC" required pattern="([a-zA-Z]+, )?\d{1,2} [a-zA-Z]{3} \d{1,4} \d{2}:\d{2}:\d{2}([ a-zA-Z]+)?">
+      <div class="actions"><button v-on:click="copy('utc')" class="copy">Copy</button></div>
+    </div>
   </div>
   <div>
     <label for="iso"><span>ISO:</span></label>
-    <input id="iso" v-model="iso" v-on:keyup="inputChangedISO" required pattern="\d{1,4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z">
+    <div class="input">
+      <input id="iso" v-model="iso" v-on:keyup="inputChangedISO" required pattern="\d{1,4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z">
+      <div class="actions"><button v-on:click="copy('iso')" class="copy">Copy</button></div>
+    </div>
   </div>
   <div>
   <button v-on:click="now">Now</button>
@@ -94,9 +129,14 @@ var app = new Vue({
       }
 
       var parts = this.unix.split(".")
+      if (parts.length == 2) {
+        while (parts[1].length < 3) {
+          parts[1] += '0'
+        }
+      }
 
       ts = new Date();
-      ts.setTime(parts[0] * 1000 + (parts[2]|0));
+      ts.setTime(parts[0] * 1000 + (parts[1]|0));
       
       this.utc = ts.toUTCString();
       this.unixms = ts.getTime().toString();
@@ -115,12 +155,26 @@ var app = new Vue({
       this.iso = ts.toISOString();
     },
     inputChangedUTC: function(e) {
+      if (!e.target.checkValidity()) {
+        return
+      }
+
+      var dayOfWeekPresented = true
       var parts = e.target.value.split(" ");
+      if (parts.length == 5) { // Removed Day of week ("Tue, ")
+        parts.unshift("");
+        dayOfWeekPresented = false
+      }
       var hourParts = parts[4].split(":");
+
+      month = this.getMonthByString(parts[2])
+      if (month == -1) {
+        return
+      }
       
       ts = new Date(Date.UTC(
         parts[3],
-        this.getMonthByString(parts[2]),
+        month,
         parts[1],
         hourParts[0],
         hourParts[1],
@@ -131,6 +185,19 @@ var app = new Vue({
       this.unix = formatUnix((ts.getTime()/1000).toString());
       this.unixms = ts.getTime().toString();
       this.iso = ts.toISOString();
+
+      // update date part of UTC IF it presented
+      if (dayOfWeekPresented) {
+        var selectionStart = e.target.selectionStart
+        var selectionEnd = e.target.selectionEnd
+
+        newDayOfWeek = ts.toUTCString().split(",")[0]
+        this.utc = newDayOfWeek + "," + this.utc.split(",")[1]
+
+        Vue.nextTick(function () {
+          document.getElementById('utc').setSelectionRange(selectionStart, selectionEnd)
+        })
+      }
     },
     inputChangedISO: function(e) {
       var parts = e.target.value.split("T");
@@ -160,6 +227,11 @@ var app = new Vue({
       this.utc = ts.toUTCString();
       this.iso = ts.toISOString();
     },
+    copy: function(input) {
+      document.getElementById(input).select();
+      document.execCommand("copy");
+      document.getElementById(input).selectionStart = document.getElementById(input).selectionEnd;
+    },
     getMonthByString: function(month) {
       switch (month.toUpperCase()) {
         case "JAN":
@@ -186,6 +258,8 @@ var app = new Vue({
           return 10;
         case "DEC":
           return 11;
+        default:
+          return -1;
       }
     }
   }
