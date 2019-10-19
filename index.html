@@ -3,24 +3,52 @@
     <title>Timestamp</title>
     <style>
       body {
-        font-family: SF Mono, Pragmata Pro, monospace;
+        font-family: --apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      }
+      h1 {
+        position: relative;
+        width: 640px;
+        margin: 0rem auto;
+        text-align: left;
+        font-family: --apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-weight: bold;
+        font-size: 3rem;
+        margin-top: 4rem;
+        margin-bottom: 1rem;
+        color: #666;
+        text-shadow: 0 1px 0px rgba(0,0,0,0.15);
       }
       #app {
-        width: 600px;
+        width: 640px;
         margin: 0rem auto;
-        padding: 1rem;
       }
       input {
-        font-family: SF Mono, Pragmata Pro, monospace;
+        font-family: "Pragmata Pro", "SF Mono", monospace;
         font-size: 2rem;
         width: 100%;
+      }
+      input[type="text"] {
+        margin: 0;
+        border-radius: 4px;
       }
       input:invalid {
         box-shadow: 0 0px 3px red;
       }
+      input[readonly] {
+        color: red;
+        border: 1px solid #444;
+        background: red;
+        cursor: default;
+      }
       button {
-        font-family: SF Mono, Pragmata Pro, monospace;
         font-size: 1rem;
+        color: #E0E5DC;
+        background-color: #6C6C6C;
+        border: none;
+        border-radius: 4px;
+        box-shadow: 0 1px 1px rgba(255,255,255,0.3) inset,
+          0 1px 1px rgba(0,0,0,0.3);
+        padding: 0.33rem 0.8rem;
       }
       div + div {
         margin-top: 1rem;
@@ -31,78 +59,100 @@
         color: #999;
       }
       .input {
-        position: relative;
+        display: flex;
       }
-      .actions {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 100%;
-        margin-left: 5px;
+      .input input {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        z-index: 10;
       }
-      .actions button {
-        display: block;
-        height: 100%;
-        width: 42px;
-        background: #222 url("./copy_dark.png") no-repeat center center;
-        background-size: 42px 42px;
-        text-indent: -9999px;
-        border: none;
-        border-radius: 4px;
-        transition: 0.33s ease background;
+      .input button {
+        margin: 0;
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        background: #2E2F30 url("./copy_dark.png") no-repeat center center;
+        background-size: 16px 16px;
+        color: #A5A5A6;
+        border: 1px solid #3F3F41;
+        box-shadow: none;
+        text-indent: -9000000px;
+        padding: 0 1.5rem;
       }
-      .actions button:hover {
+      .input button:hover {
         background-color: #444;
+      }
+      .btnNow {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        font-weight: bold;
       }
 
       /* night mode */
       body {
-        background: #222;
+        background: #2E2F30;
       }
-      input {
-        background: black;
-        border: 1px solid #666;
-        color: #eee;
+      input[type="text"] {
+        background: #454545;
+        border: 1px solid #4F4E4F;
+        color: #C4C3C0;
       }
     </style>
 </head>
 <body>
 <div id="app">
+  <h1>
+    Timestamp panel
+    <button class="btnNow" v-on:click="now">Now</button>
+  </h1>
   <div>
     <label for="unix"><span>Unix Timestamp:</span></label>
     <div class="input">
-      <input id="unix" v-model="unix" v-on:keyup="inputChangedUnix" required pattern="-?[\d]+(.[\d]+)?">
-      <div class="actions"><button v-on:click="copy('unix')" class="copy">Copy</button></div>
+      <input id="unix" v-model="unix" v-on:keyup="inputChangedUnix" type="text" required v-on:keydown.up="change(1,$event)" v-on:keydown.down="change(-1,$event)"  pattern="-?[\d]+(.[\d]+)?">
+      <button v-on:click="copy('unix')" class="copy">Copy</button>
     </div>
   </div>
   <div>
     <label for="unixms"><span>Unix Timestamp with Milliseconds:</span></label>
     <div class="input">
-      <input id="unixms" v-model="unixms" v-on:keyup="inputChangedUnixMs" required pattern="-?\d+">
-      <div class="actions"><button v-on:click="copy('unixms')" class="copy">Copy</button></div>
+      <input id="unixms" v-model="unixms" v-on:keyup="inputChangedUnixMs" type="text" required pattern="-?\d+">
+      <button v-on:click="copy('unixms')" class="copy">Copy</button>
     </div>
   </div>
   <div>
     <label for="utc"><span>UTC:</span></label>
     <div class="input">
-      <input id="utc" v-model="utc" v-on:keyup="inputChangedUTC" required pattern="([a-zA-Z]+, )?\d{1,2} [a-zA-Z]{3} \d{1,4} \d{2}:\d{2}:\d{2}([ a-zA-Z]+)?">
-      <div class="actions"><button v-on:click="copy('utc')" class="copy">Copy</button></div>
+      <input id="utc" v-model="utc" v-on:keyup="inputChangedUTC" type="text" required v-on:keydown.up="changeUTC(1,$event)" v-on:keydown.down="changeUTC(-1,$event)" required pattern="[a-zA-Z]{3}, \d{2} [a-zA-Z]{3} -?\d{1,4} \d{2}:\d{2}:\d{2}([ a-zA-Z]+)?">
+      <button v-on:click="copy('utc')" class="copy">Copy</button>
     </div>
   </div>
   <div>
     <label for="iso"><span>ISO:</span></label>
     <div class="input">
-      <input id="iso" v-model="iso" v-on:keyup="inputChangedISO" required pattern="\d{1,4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z">
-      <div class="actions"><button v-on:click="copy('iso')" class="copy">Copy</button></div>
+      <input id="iso" v-model="iso" v-on:keyup="inputChangedISO" type="text" required pattern="\d{1,4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z">
+      <button v-on:click="copy('iso')" class="copy">Copy</button>
     </div>
   </div>
   <div>
-  <button v-on:click="now">Now</button>
+    <label for="locale"><span>Locale:</span></label>
+    <div class="input">
+      <input id="locale" v-model="locale" type="text" readonly>
+      <button v-on:click="copy('locale')" class="copy">Copy</button>
+    </div>
   </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <script>
 var ts = new Date();
+const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
+const utcValueMeaning = ["dow", "day", "month", "year", "hour", "min", "sec", "zone"]
+
+var bounds = new Map()
+bounds.set("sec", [0, 59, "min"])
+bounds.set("min", [0, 59, "hour"])
+bounds.set("hour", [0, 23, "day"])
+bounds.set("day", [1, undefined, "month"]) // day has a special logic
+bounds.set("month", [0, months.length - 1, "year"])
 
 var formatUnix = function(unix) {
   var parts = unix.split(".")
@@ -115,13 +165,99 @@ var formatUnix = function(unix) {
   return parts.join('.')
 };
 
+var daysInMonth = function(month, year) {
+    return new Date(year, month, 0).getDate();
+}
+
+var capitalizeFirstLetter = function(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+var exceedBounds = function(val, min, max) {
+  return val < min || val > max
+}
+
+var updateVal = function(parts, name, diff) {
+  console.log(name, diff)
+  ind = utcValueMeaning.indexOf(name)
+  indDiff = 0
+  if (parts.length == 7) { // Day of Week was removed
+    ind--;
+    indDiff = -1
+  }
+
+  if (name == "month") {
+    val = months.indexOf(parts[ind].toLowerCase()) + diff
+  } else {
+    val = (parseInt(parts[ind], 10) + diff).toString()
+  }
+
+  shouldUpdateNext = false
+  b = bounds.get(name)
+
+
+  if (b !== undefined) { 
+    if (name == "day") {
+      currentMonth = months.indexOf(parts[2].toLowerCase());
+      prevMonth = currentMonth - 1
+      if (prevMonth < 0) {
+        prevMonth = 11;
+      }
+      currentMonthMax = daysInMonth(currentMonth+1, parts[3 + indDiff])
+      prevMonthMax = daysInMonth(prevMonth+1, parts[3 + indDiff])
+
+      if (val < b[0]) {
+        b[1] = prevMonthMax
+      } else if (val > currentMonthMax) {
+        b[1] = currentMonthMax
+      }
+
+    }
+    if (val < b[0]) {
+      val = b[1]
+      shouldUpdateNext = true
+    } else if (val > b[1]) {
+      val = b[0]
+      shouldUpdateNext = true
+    }
+  }
+  
+  if (name == "month") {
+    parts[ind] = capitalizeFirstLetter(months[val])
+  } else {
+    parts[ind] = val.toString()
+  }
+
+  if (shouldUpdateNext) {
+    parts = updateVal(parts, b[2], diff)
+  }
+
+  return parts
+}
+
+var format2 = function(val) {
+  if (val.toString().length < 2) {
+    return "0" + val.toString()
+  }
+  return val.toString()
+}
+
+var formatUTC = function(parts) {
+  if (parts.length == 7) {
+    return `${parts[0]} ${format2(parts[1])} ${parts[2]} ${format2(parts[3])}:${format2(parts[4])}:${format2(parts[5])} ${parts[6]}`
+  }
+
+  return `${parts[0]} ${format2(parts[1])} ${parts[2]} ${parts[3]} ${format2(parts[4])}:${format2(parts[5])}:${format2(parts[6])} ${parts[7]}`
+}
+
 var app = new Vue({
   el: '#app',
   data: {
     unix: formatUnix((ts.getTime()/1000).toString()),
     unixms: ts.getTime().toString(),
     utc: ts.toUTCString(),
-    iso: ts.toISOString()
+    iso: ts.toISOString(),
+    locale: ts.toLocaleString(),
   },
   methods: {
     inputChangedUnix: function (e) {
@@ -142,6 +278,7 @@ var app = new Vue({
       this.utc = ts.toUTCString();
       this.unixms = ts.getTime().toString();
       this.iso = ts.toISOString();
+      this.locale = ts.toLocaleString();
     },
     inputChangedUnixMs: function (e) {
       if (!e.target.checkValidity()) {
@@ -154,6 +291,7 @@ var app = new Vue({
       this.unix = formatUnix((ts.getTime()/1000).toString());
       this.utc = ts.toUTCString();
       this.iso = ts.toISOString();
+      this.locale = ts.toLocaleString();
     },
     inputChangedUTC: function(e) {
       if (!e.target.checkValidity()) {
@@ -168,7 +306,7 @@ var app = new Vue({
       }
       var hourParts = parts[4].split(":");
 
-      month = this.getMonthByString(parts[2])
+      month = months.indexOf(parts[2].toLowerCase())
       if (month == -1) {
         return
       }
@@ -186,6 +324,7 @@ var app = new Vue({
       this.unix = formatUnix((ts.getTime()/1000).toString());
       this.unixms = ts.getTime().toString();
       this.iso = ts.toISOString();
+      this.locale = ts.toLocaleString();
 
       // update date part of UTC IF it presented
       if (dayOfWeekPresented) {
@@ -201,6 +340,10 @@ var app = new Vue({
       }
     },
     inputChangedISO: function(e) {
+      if (!e.target.checkValidity()) {
+        return
+      }
+
       var parts = e.target.value.split("T");
       var dateParts = parts[0].split("-");
       var hourParts = parts[1].split(":");
@@ -219,6 +362,7 @@ var app = new Vue({
       this.unix = formatUnix((ts.getTime()/1000).toString());
       this.unixms = ts.getTime().toString();
       this.utc = ts.toUTCString();
+      this.locale = ts.toLocaleString();
     },
     now: function() {
       ts = new Date();
@@ -227,6 +371,7 @@ var app = new Vue({
       this.unixms = ts.getTime().toString();
       this.utc = ts.toUTCString();
       this.iso = ts.toISOString();
+      this.locale = ts.toLocaleString();
     },
     copy: function(input) {
       var el = document.getElementById(input)
@@ -237,35 +382,88 @@ var app = new Vue({
       el.selectionStart = selectionStart;
       el.selectionEnd = selectionEnd;
     },
-    getMonthByString: function(month) {
-      switch (month.toUpperCase()) {
-        case "JAN":
-          return 0;
-        case "FEB":
-          return 1;
-        case "MAR":
-          return 2;
-        case "APR":
-          return 3;
-        case "MAY":
-          return 4;
-        case "JUN":
-          return 5;
-        case "JUL":
-          return 6;
-        case "AUG":
-          return 7;
-        case "SEP":
-          return 8;
-        case "OCT":
-          return 9;
-        case "NOV":
-          return 10;
-        case "DEC":
-          return 11;
-        default:
-          return -1;
+    changeUTC: function(diff, e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (!e.target.checkValidity()) {
+        return
       }
+
+      var selectionStart = e.target.selectionStart;
+      
+      var currentLength = 0;
+      var parts = e.target.value.split(/[\s:]+/); // separate by space or colon
+
+      for (var i = 0; i < parts.length; i++) { // iterate over words
+        var valueStartIndex = currentLength;
+        var valueStopIndex = currentLength + parts[i].length;
+        currentLength = valueStopIndex + 1 // +1 for space or colon ↑
+        if (selectionStart < currentLength) { // if cursor is on current word
+          var valueUnderCarret = parts[i]
+          var valueMeaning = this.getValueMeaningISO(i, parts.length)
+          var keepLength = false;
+          switch (valueMeaning) {
+            case "dow":
+              parts = updateVal(parts, "day", diff)
+              this.utc = formatUTC(parts)
+              Vue.nextTick(function () {
+                document.getElementById('utc').setSelectionRange(selectionStart, selectionStart)
+              })
+              break;
+            case "zone":
+              console.log("Time Zone update not supported",)
+              break;
+            // Seconds, minues and hours are always presented by 2 digits
+            case "hour":
+            case "min":
+            case "sec":
+            case "day":
+              keepLength = true;
+              // no break! falls through
+            case "month":
+            case "year":
+              parts = updateVal(parts, valueMeaning, diff)
+
+              oldUTCLength = this.utc.length
+              this.utc = formatUTC(parts)
+
+              if (!keepLength) {
+                // handle cursor position update:
+                // it if was at the end of 2 digits number and now it's 1 digit – move cursor left
+                if (parts[i].length < valueUnderCarret.length && selectionStart == valueStopIndex) {
+                  selectionStart = valueStopIndex - 1
+                }
+                // it if was at the end of 1 digit number and now it's 2 digits – move cursor right
+                if (parts[i].length > valueUnderCarret.length && selectionStart == valueStopIndex) {
+                  selectionStart = valueStopIndex + 1
+                }
+              } else {
+                // keep cursor position, for example:
+                // when second/min/hour change leads to day change
+                if (this.utc.length > oldUTCLength) {
+                  selectionStart = selectionStart + 1
+                }
+
+                if (this.utc.length < oldUTCLength) {
+                  selectionStart = selectionStart - 1
+                }
+              }
+
+              Vue.nextTick(function () {
+                document.getElementById('utc').setSelectionRange(selectionStart, selectionStart)
+              })
+              break;
+          }
+          break;
+        }
+      }
+    },
+    getValueMeaningISO: function(index, length) {
+      if (length == 7) { // if Day of Week has been removed
+        index++;
+      }
+      return utcValueMeaning[index]
     }
   }
 })
