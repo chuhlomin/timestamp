@@ -1,6 +1,7 @@
 <html>
 <head>
     <title>Timestamp</title>
+    <link rel="icon" type="image/png" href="favicon.png" />
     <style>
       body {
         font-family: --apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -106,21 +107,21 @@
   <div>
     <label for="unix"><span>Unix Timestamp:</span></label>
     <div class="input">
-      <input id="unix" v-model="unix" v-on:keyup="inputChangedUnix" type="text" required v-on:keydown.up="change(1,$event)" v-on:keydown.down="change(-1,$event)"  pattern="-?[\d]+(.[\d]+)?">
+      <input id="unix" v-model="unix" v-on:keyup="inputChangedUnix" type="text" required v-on:keydown.up="changeUnix(1,$event)" v-on:keydown.down="changeUnix(-1,$event)" pattern="-?[\d]+(.[\d]{3})?">
       <button v-on:click="copy('unix')" class="copy">Copy</button>
     </div>
   </div>
   <div>
     <label for="unixms"><span>Unix Timestamp with Milliseconds:</span></label>
     <div class="input">
-      <input id="unixms" v-model="unixms" v-on:keyup="inputChangedUnixMs" type="text" required pattern="-?\d+">
+      <input id="unixms" v-model="unixms" v-on:keyup="inputChangedUnixMs" type="text" required v-on:keydown.up="changeUnixMs(1,$event)" v-on:keydown.down="changeUnixMs(-1,$event)" pattern="-?\d+">
       <button v-on:click="copy('unixms')" class="copy">Copy</button>
     </div>
   </div>
   <div>
     <label for="utc"><span>UTC:</span></label>
     <div class="input">
-      <input id="utc" v-model="utc" v-on:keyup="inputChangedUTC" type="text" required v-on:keydown.up="changeUTC(1,$event)" v-on:keydown.down="changeUTC(-1,$event)" required pattern="[a-zA-Z]{3}, \d{2} [a-zA-Z]{3} -?\d{1,4} \d{2}:\d{2}:\d{2} GMT">
+      <input id="utc" v-model="utc" v-on:keyup="inputChangedUTC" type="text" required v-on:keydown.up="changeUTC(1,$event)" v-on:keydown.down="changeUTC(-1,$event)" pattern="[a-zA-Z]{3}, \d{2} [a-zA-Z]{3} -?\d{1,4} \d{2}:\d{2}:\d{2} GMT">
       <button v-on:click="copy('utc')" class="copy">Copy</button>
     </div>
   </div>
@@ -281,14 +282,16 @@ var app = new Vue({
 
       var parts = this.unix.split(".")
       if (parts.length == 2) {
-        while (parts[1].length < 3) {
-          parts[1] += '0'
-        }
+        parts[1] += '0'.repeat(3 - parts[1].length)
       }
 
       ts = new Date();
+      if (parts[0][0] == "-") {
+        parts[1] *= -1
+      }
+
       ts.setTime(parts[0] * 1000 + (parts[1]|0));
-      
+
       this.utc = ts.toUTCString();
       this.unixms = ts.getTime().toString();
       this.iso = ts.toISOString();
@@ -410,8 +413,8 @@ var app = new Vue({
         return
       }
 
-      var selectionStart = e.target.selectionStart;
-      var selectionEnd = e.target.selectionEnd
+      let selectionStart = e.target.selectionStart
+      let selectionEnd = e.target.selectionEnd
       var parts = e.target.value.split(/[\s:]+/); // separate by space or colon
       
       let valueIndex = this.getValueIndex(parts, selectionEnd)
@@ -442,8 +445,8 @@ var app = new Vue({
         return
       }
 
-      var selectionStart = e.target.selectionStart;
-      var selectionEnd = e.target.selectionEnd
+      let selectionStart = e.target.selectionStart
+      let selectionEnd = e.target.selectionEnd
       var parts = e.target.value.split(/[-:TZ\.]+/); // separate by "-", ":", "T", "." or "Z"
 
       let valueIndex = this.getValueIndex(parts, selectionEnd)
@@ -462,6 +465,124 @@ var app = new Vue({
       this.iso = formatISO(parts)
       Vue.nextTick(function () {
         document.getElementById('iso').setSelectionRange(selectionStart, selectionEnd)
+      })
+    },
+    changeUnixMs: function(diff, e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!e.target.checkValidity()) {
+        return
+      }
+      let selectionStart = e.target.selectionStart
+      let selectionEnd = e.target.selectionEnd
+      let newValue = (parseInt(this.unixms, 10) + diff).toString()
+      if (newValue < -59011459200000) {
+        return
+      }
+      this.unixms = newValue
+      
+      Vue.nextTick(function () {
+        document.getElementById('unixms').setSelectionRange(selectionStart, selectionEnd)
+      })
+    },
+    changeUnix: function(diff, e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!e.target.checkValidity()) {
+        return
+      }
+      var selectionStart = e.target.selectionStart
+      var selectionEnd = e.target.selectionEnd
+      let selectionLength = selectionEnd - selectionStart
+      let unixValueOld = this.unix
+
+      console.log("------------------------")
+
+      if (this.unix.indexOf(".") == -1) {
+        this.unix = (parseInt(this.unix, 10) + diff).toString()
+      } else {
+        var parts = this.unix.split(".")
+        var secValueOld = parts[0]
+
+        var secValue = parseInt(parts[0], 10)
+        var msValue = 0
+        if (parts.length > 1) {
+          msValue = parseInt(parts[1], 10)
+        }
+
+        var secValueSignPrefix = ""
+        if (parts[0][0] == "-") {
+          secValueSignPrefix = "-"
+        }
+
+        if (selectionEnd <= parts[0].length) {
+          secValue = (secValue + diff).toString()
+
+          if (msValue != 0) {
+            if (secValue == 0 && secValueSignPrefix == "-") {
+              secValue = secValueSignPrefix + secValue
+            }
+            if (secValue == -1 && secValueOld == "0") {
+              secValue = "-0"
+            }
+            if (secValue == 1 && secValueOld == "-0") {
+              secValue = "0"
+            }
+          }
+        } else {
+          console.log("milliseconds change detected")
+
+          var multiplier = 1
+          if (parts[0][0] == "-") {
+            multiplier = -1;
+          }
+
+          msValue += multiplier*diff
+          
+          if (msValue > 999) {
+            msValue = 0
+            secValue = secValue + multiplier*1
+          } else if (msValue < 0) {
+            msValue = 999
+            secValue = secValue - multiplier*1
+          }
+
+          if (msValue != 0) {
+            if (secValue == 0 && secValueOld == "-1") {
+              secValue = "-0"
+            }
+            if (secValue == -1 && secValueOld == "0") {
+              secValue = "-0"
+              msValue = 1
+            }
+
+            if (secValue == secValueOld) { // to keep the sign
+              secValue = secValueOld
+            }
+          }
+        }
+
+        this.unix = secValue.toString() + "." + format3(msValue);
+
+        if (this.unix.length > unixValueOld.length) {
+          if (selectionLength == 0) {
+            selectionEnd++
+            selectionStart++
+          } else {
+            selectionEnd++
+          }
+        } else if (this.unix.length < unixValueOld.length) {
+          if (selectionLength == 0) {
+            selectionEnd--
+            selectionStart--
+          } else {
+            selectionEnd--
+          }
+        }
+      }
+      
+      Vue.nextTick(function () {
+        document.getElementById('unix').setSelectionRange(selectionStart, selectionEnd)
       })
     },
     getValueMeaningUTC: function(index) {
