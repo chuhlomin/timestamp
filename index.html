@@ -34,7 +34,7 @@
       input:invalid {
         box-shadow: 0 0px 0px 2px orange;
       }
-      input[readonly] {
+      input:text[readonly] {
         color: red;
         border: 1px solid #444;
         background: red;
@@ -98,7 +98,13 @@
       input[type="text"] {
         background: #454545;
         border: 1px solid #4F4E4F;
+        border-right: 0;
         color: #C4C3C0;
+      }
+      input[readonly] {
+        background: transparent;
+        border-color: #3F3F41;
+        color: #676767;
       }
     </style>
 </head>
@@ -157,7 +163,7 @@ bounds.set("sec", [0, 59, "min"])
 bounds.set("min", [0, 59, "hour"])
 bounds.set("hour", [0, 23, "day"])
 bounds.set("day", [1, undefined, "month"]) // day has a special logic
-bounds.set("month", [0, months.length - 1, "year"])
+bounds.set("month", [1, months.length, "year"])
 
 var formatUnix = function(unix) {
   var parts = unix.split(".")
@@ -178,10 +184,6 @@ var capitalizeFirstLetter = function(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-var exceedBounds = function(val, min, max) {
-  return val < min || val > max
-}
-
 var updateVal = function(format, parts, name, diff) {
   console.log(name, diff)
   let valueMeaning = getValueMeaningMap(format)
@@ -200,6 +202,9 @@ var updateVal = function(format, parts, name, diff) {
   b = bounds.get(name)
 
   if (b !== undefined) { 
+    var min = b[0]
+    var max = b[1]
+
     if (name == "day") {
       currentMonth = months.indexOf(parts[2].toLowerCase());
       prevMonth = currentMonth - 1
@@ -209,18 +214,22 @@ var updateVal = function(format, parts, name, diff) {
       currentMonthMax = daysInMonth(currentMonth+1, parts[3])
       prevMonthMax = daysInMonth(prevMonth+1, parts[3])
 
-      if (val < b[0]) {
-        b[1] = prevMonthMax
+      if (val < min) {
+        max = prevMonthMax
       } else if (val > currentMonthMax) {
-        b[1] = currentMonthMax
+        max = currentMonthMax
       }
     }
+    if (name == "month" && format == "utc") {
+      min--
+      max--
+    }
 
-    if (val < b[0]) {
-      val = b[1]
+    if (val < min) {
+      val = max
       shouldUpdateNext = true
-    } else if (val > b[1]) {
-      val = b[0]
+    } else if (val > max) {
+      val = min
       shouldUpdateNext = true
     }
   }
