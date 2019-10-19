@@ -32,7 +32,7 @@
         border-radius: 4px;
       }
       input:invalid {
-        box-shadow: 0 0px 3px red;
+        box-shadow: 0 0px 0px 2px orange;
       }
       input[readonly] {
         color: red;
@@ -132,7 +132,7 @@
   <div>
     <label for="iso"><span>ISO:</span></label>
     <div class="input">
-      <input id="iso" v-model="iso" v-on:keyup="inputChangedISO" type="text" required pattern="\d{1,4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z">
+      <input id="iso" v-model="iso" v-on:keyup="inputChangedISO" type="text" required v-on:keydown.up="changeISO(1,$event)" v-on:keydown.down="changeISO(-1,$event)" pattern="\d{1,4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z">
       <button v-on:click="copy('iso')" class="copy">Copy</button>
     </div>
   </div>
@@ -149,8 +149,10 @@
 var ts = new Date();
 const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
 const utcValueMeaning = ["dow", "day", "month", "year", "hour", "min", "sec", "zone"]
+const isoValueMeaning = ["year", "month", "day", "hour", "min", "sec", "msec"]
 
 var bounds = new Map()
+bounds.set("msec", [0, 999, "sec"])
 bounds.set("sec", [0, 59, "min"])
 bounds.set("min", [0, 59, "hour"])
 bounds.set("hour", [0, 23, "day"])
@@ -180,24 +182,22 @@ var exceedBounds = function(val, min, max) {
   return val < min || val > max
 }
 
-var updateVal = function(parts, name, diff) {
+var updateVal = function(format, parts, name, diff) {
   console.log(name, diff)
-  ind = utcValueMeaning.indexOf(name)
-  indDiff = 0
-  if (parts.length == 7) { // Day of Week was removed
-    ind--;
-    indDiff = -1
-  }
+  let valueMeaning = getValueMeaningMap(format)
 
-  if (name == "month") {
+  ind = valueMeaning.indexOf(name)
+
+  if (format == "utc" && name == "month") {
     val = months.indexOf(parts[ind].toLowerCase()) + diff
+  } else if (name == "year" && parseInt(parts[ind], 10) == 100 && diff == -1) {
+    return
   } else {
     val = (parseInt(parts[ind], 10) + diff).toString()
   }
 
   shouldUpdateNext = false
   b = bounds.get(name)
-
 
   if (b !== undefined) { 
     if (name == "day") {
@@ -206,16 +206,16 @@ var updateVal = function(parts, name, diff) {
       if (prevMonth < 0) {
         prevMonth = 11;
       }
-      currentMonthMax = daysInMonth(currentMonth+1, parts[3 + indDiff])
-      prevMonthMax = daysInMonth(prevMonth+1, parts[3 + indDiff])
+      currentMonthMax = daysInMonth(currentMonth+1, parts[3])
+      prevMonthMax = daysInMonth(prevMonth+1, parts[3])
 
       if (val < b[0]) {
         b[1] = prevMonthMax
       } else if (val > currentMonthMax) {
         b[1] = currentMonthMax
       }
-
     }
+
     if (val < b[0]) {
       val = b[1]
       shouldUpdateNext = true
@@ -225,32 +225,45 @@ var updateVal = function(parts, name, diff) {
     }
   }
   
-  if (name == "month") {
+  if (format == "utc" && name == "month") {
     parts[ind] = capitalizeFirstLetter(months[val])
   } else {
     parts[ind] = val.toString()
   }
 
   if (shouldUpdateNext) {
-    parts = updateVal(parts, b[2], diff)
+    parts = updateVal(format, parts, b[2], diff)
   }
 
   return parts
 }
 
-var format2 = function(val) {
-  if (val.toString().length < 2) {
-    return "0" + val.toString()
-  }
-  return val.toString()
+var prependZeroToMatchLength = function(val, length) {
+  return "0".repeat(length - val.toString().length) + val.toString()
 }
 
-var formatUTC = function(parts) {
-  if (parts.length == 7) {
-    return `${parts[0]} ${format2(parts[1])} ${parts[2]} ${format2(parts[3])}:${format2(parts[4])}:${format2(parts[5])} ${parts[6]}`
-  }
+var format2 = function(val) { return prependZeroToMatchLength(val, 2)}
+var format3 = function(val) { return prependZeroToMatchLength(val, 3)}
+var format4 = function(val) { return prependZeroToMatchLength(val, 4)}
 
-  return `${parts[0]} ${format2(parts[1])} ${parts[2]} ${parts[3]} ${format2(parts[4])}:${format2(parts[5])}:${format2(parts[6])} ${parts[7]}`
+var formatUTC = function(parts) {
+  return `${parts[0]} ${format2(parts[1])} ${capitalizeFirstLetter(parts[2])} ${format4(parts[3])} ${format2(parts[4])}:${format2(parts[5])}:${format2(parts[6])} ${parts[7]}`
+}
+
+var formatISO = function(parts) {
+  console.log(parts)
+  return `${format4(parts[0])}-${format2(parts[1])}-${format2(parts[2])}T${format2(parts[3])}:${format2(parts[4])}:${format2(parts[5])}.${format3(parts[6])}Z`
+}
+
+var getValueMeaningMap = function(format) {
+  switch (format) {
+    case "iso":
+      return isoValueMeaning
+    case "utc":
+      return utcValueMeaning
+    default:
+      return []
+  }
 }
 
 var app = new Vue({
@@ -301,12 +314,7 @@ var app = new Vue({
         return
       }
 
-      var dayOfWeekPresented = true
       var parts = e.target.value.split(" ");
-      if (parts.length == 5) { // Removed Day of week ("Tue, ")
-        parts.unshift("");
-        dayOfWeekPresented = false
-      }
       var hourParts = parts[4].split(":");
 
       month = months.indexOf(parts[2].toLowerCase())
@@ -329,18 +337,15 @@ var app = new Vue({
       this.iso = ts.toISOString();
       this.locale = ts.toLocaleString();
 
-      // update date part of UTC IF it presented
-      if (dayOfWeekPresented) {
-        var selectionStart = e.target.selectionStart
-        var selectionEnd = e.target.selectionEnd
+      var selectionStart = e.target.selectionStart
+      var selectionEnd = e.target.selectionEnd
 
-        newDayOfWeek = ts.toUTCString().split(",")[0]
-        this.utc = newDayOfWeek + "," + this.utc.split(",")[1]
+      newDayOfWeek = ts.toUTCString().split(",")[0]
+      this.utc = newDayOfWeek + "," + this.utc.split(",")[1]
 
-        Vue.nextTick(function () {
-          document.getElementById('utc').setSelectionRange(selectionStart, selectionEnd)
-        })
-      }
+      Vue.nextTick(function () {
+        document.getElementById('utc').setSelectionRange(selectionStart, selectionEnd)
+      })
     },
     inputChangedISO: function(e) {
       if (!e.target.checkValidity()) {
@@ -385,88 +390,87 @@ var app = new Vue({
       el.selectionStart = selectionStart;
       el.selectionEnd = selectionEnd;
     },
+    getValueIndex: function(parts, selectionStart) {
+      var valueStopIndex = 0
+      var currentLength = 0;
+      
+      for (var i = 0; i < parts.length; i++) { // iterate over words
+        valueStopIndex = currentLength + parts[i].length;
+        currentLength = valueStopIndex + 1 // +1 for separator
+        
+        if (selectionStart < currentLength) { // if cursor is on current word
+          return i
+        }
+      }
+
+      return -1
+    },
     changeUTC: function(diff, e) {
       e.preventDefault();
       e.stopPropagation();
-
       if (!e.target.checkValidity()) {
         return
       }
 
       var selectionStart = e.target.selectionStart;
-      
-      var currentLength = 0;
+      var selectionEnd = e.target.selectionEnd
       var parts = e.target.value.split(/[\s:]+/); // separate by space or colon
-
-      for (var i = 0; i < parts.length; i++) { // iterate over words
-        var valueStartIndex = currentLength;
-        var valueStopIndex = currentLength + parts[i].length;
-        currentLength = valueStopIndex + 1 // +1 for space or colon ↑
-        if (selectionStart < currentLength) { // if cursor is on current word
-          var valueUnderCarret = parts[i]
-          var valueMeaning = this.getValueMeaningISO(i, parts.length)
-          var keepLength = false;
-          switch (valueMeaning) {
-            case "dow":
-              parts = updateVal(parts, "day", diff)
-              this.utc = formatUTC(parts)
-              Vue.nextTick(function () {
-                document.getElementById('utc').setSelectionRange(selectionStart, selectionStart)
-              })
-              break;
-            case "zone":
-              console.log("Time Zone update not supported",)
-              break;
-            // Seconds, minues and hours are always presented by 2 digits
-            case "hour":
-            case "min":
-            case "sec":
-            case "day":
-              keepLength = true;
-              // no break! falls through
-            case "month":
-            case "year":
-              parts = updateVal(parts, valueMeaning, diff)
-
-              oldUTCLength = this.utc.length
-              this.utc = formatUTC(parts)
-
-              if (!keepLength) {
-                // handle cursor position update:
-                // it if was at the end of 2 digits number and now it's 1 digit – move cursor left
-                if (parts[i].length < valueUnderCarret.length && selectionStart == valueStopIndex) {
-                  selectionStart = valueStopIndex - 1
-                }
-                // it if was at the end of 1 digit number and now it's 2 digits – move cursor right
-                if (parts[i].length > valueUnderCarret.length && selectionStart == valueStopIndex) {
-                  selectionStart = valueStopIndex + 1
-                }
-              } else {
-                // keep cursor position, for example:
-                // when second/min/hour change leads to day change
-                if (this.utc.length > oldUTCLength) {
-                  selectionStart = selectionStart + 1
-                }
-
-                if (this.utc.length < oldUTCLength) {
-                  selectionStart = selectionStart - 1
-                }
-              }
-
-              Vue.nextTick(function () {
-                document.getElementById('utc').setSelectionRange(selectionStart, selectionStart)
-              })
-              break;
-          }
-          break;
-        }
+      
+      let valueIndex = this.getValueIndex(parts, selectionEnd)
+      if (valueIndex == -1) {
+        console.log("valueIndex = -1, this should never happen")
+        return
       }
+
+      var valueMeaning = this.getValueMeaningUTC(valueIndex)
+      if (valueMeaning == "zone") {
+        console.log("Time Zone update not supported",)
+        return
+      }
+      if (valueMeaning == "dow") {
+        valueMeaning = "day"
+      }
+
+      parts = updateVal("utc", parts, valueMeaning, diff)
+      this.utc = formatUTC(parts)
+      Vue.nextTick(function () {
+        document.getElementById('utc').setSelectionRange(selectionStart, selectionEnd)
+      })
     },
-    getValueMeaningISO: function(index, length) {
-      if (length == 7) { // if Day of Week has been removed
-        index++;
+    changeISO: function(diff, e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!e.target.checkValidity()) {
+        return
       }
+
+      var selectionStart = e.target.selectionStart;
+      var selectionEnd = e.target.selectionEnd
+      var parts = e.target.value.split(/[-:TZ\.]+/); // separate by "-", ":", "T", "." or "Z"
+
+      let valueIndex = this.getValueIndex(parts, selectionEnd)
+      if (valueIndex == -1) {
+        console.log("valueIndex = -1, this should never happen")
+        return
+      }
+
+      var valueMeaning = this.getValueMeaningISO(valueIndex)
+      if (valueMeaning == "zone") {
+        console.log("Time Zone update not supported",)
+        return
+      }
+
+      parts = updateVal("iso", parts, valueMeaning, diff)
+      this.iso = formatISO(parts)
+      Vue.nextTick(function () {
+        document.getElementById('iso').setSelectionRange(selectionStart, selectionEnd)
+      })
+    },
+    getValueMeaningUTC: function(index) {
       return utcValueMeaning[index]
+    },
+    getValueMeaningISO: function(index) {
+      return isoValueMeaning[index]
     }
   }
 })
