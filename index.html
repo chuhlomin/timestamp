@@ -4,6 +4,7 @@
     <style>
       body {
         font-family: --apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        background: #2E2F30;
       }
       h1 {
         position: relative;
@@ -31,15 +32,6 @@
         margin: 0;
         border-radius: 4px;
       }
-      input:invalid {
-        box-shadow: 0 0px 0px 2px orange;
-      }
-      input:text[readonly] {
-        color: red;
-        border: 1px solid #444;
-        background: red;
-        cursor: default;
-      }
       button {
         font-size: 1rem;
         color: #E0E5DC;
@@ -65,9 +57,22 @@
         display: flex;
       }
       .input input {
+        border: 1px solid #4F4E4F;
+        border-right: 0;
         border-top-right-radius: 0;
         border-bottom-right-radius: 0;
         z-index: 10;
+        background: #454545;
+        color: #C4C3C0;
+      }
+      .input input:invalid {
+        box-shadow: 0 0px 0px 2px orange;
+      }
+      .input input[readonly] {
+        border: 1px solid #3F3F41;
+        cursor: default;
+        background: transparent;
+        color: #676767;
       }
       .input button {
         margin: 0;
@@ -89,22 +94,6 @@
         right: 0;
         bottom: 0;
         font-weight: bold;
-      }
-
-      /* night mode */
-      body {
-        background: #2E2F30;
-      }
-      input[type="text"] {
-        background: #454545;
-        border: 1px solid #4F4E4F;
-        border-right: 0;
-        color: #C4C3C0;
-      }
-      input[readonly] {
-        background: transparent;
-        border-color: #3F3F41;
-        color: #676767;
       }
     </style>
 </head>
@@ -131,7 +120,7 @@
   <div>
     <label for="utc"><span>UTC:</span></label>
     <div class="input">
-      <input id="utc" v-model="utc" v-on:keyup="inputChangedUTC" type="text" required v-on:keydown.up="changeUTC(1,$event)" v-on:keydown.down="changeUTC(-1,$event)" required pattern="[a-zA-Z]{3}, \d{2} [a-zA-Z]{3} -?\d{1,4} \d{2}:\d{2}:\d{2}([ a-zA-Z]+)?">
+      <input id="utc" v-model="utc" v-on:keyup="inputChangedUTC" type="text" required v-on:keydown.up="changeUTC(1,$event)" v-on:keydown.down="changeUTC(-1,$event)" required pattern="[a-zA-Z]{3}, \d{2} [a-zA-Z]{3} -?\d{1,4} \d{2}:\d{2}:\d{2} GMT">
       <button v-on:click="copy('utc')" class="copy">Copy</button>
     </div>
   </div>
