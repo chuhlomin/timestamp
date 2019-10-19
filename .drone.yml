@@ -1,0 +1,47 @@
+---
+kind: pipeline
+type: docker
+name: default
+
+steps:
+- name: cr
+  image: plugins/docker
+  settings:
+    registry: cr.chuhlomin.com
+    repo: cr.chuhlomin.com/timestamp
+    username:
+      from_secret: docker_username
+    password:
+      from_secret: docker_password
+    tags:
+      - ${DRONE_COMMIT}
+      - latest
+  when:
+    event: push
+    branch: master
+
+- name: deploy
+  image: cr.chuhlomin.com/docker-run:latest
+  settings:
+    server: beta.chuhlomin.com
+    username: drone
+    sudo: true
+    docker_image: cr.chuhlomin.com/timestamp:${DRONE_COMMIT}
+    docker_network: beta_default
+    container_name: timestamp
+    log_driver: loki
+    log_opt:
+      loki-url: http://127.0.0.1:3100/api/prom/push
+  environment:
+    SSH_KEY:
+      from_secret: ssh_key
+  when:
+    event: push
+    branch: master
+
+trigger:
+  branch:
+  - master
+
+image_pull_secrets:
+  - dockerconfigjson
