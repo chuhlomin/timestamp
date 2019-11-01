@@ -28,7 +28,7 @@ steps:
     sudo: true
     docker_image: cr.chuhlomin.com/timestamp:${DRONE_COMMIT}
     docker_network: beta_default
-    container_name: timestamp
+    docker_network_alias: timestamp
     log_driver: loki
     log_opt:
       loki-url: http://127.0.0.1:3100/api/prom/push

@@ -1,102 +1,151 @@
+<!DOCTYPE html>
 <html>
 <head>
-    <title>Timestamp panel</title>
-    <link rel="icon" type="image/png" href="favicon.png" />
-    <style>
+  <meta charset="utf-8">
+  <title>Timestamp panel</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <style>
+    body {
+      font-family: --apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      background: #e0e0e0;
+    }
+    h1 {
+      position: relative;
+      width: 640px;
+      margin: 0rem auto;
+      text-align: left;
+      font-family: --apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-weight: bold;
+      font-size: 3rem;
+      margin-top: 4rem;
+      margin-bottom: 1rem;
+      text-shadow: 0 1px 0px rgba(0,0,0,0.15);
+      color: #aaa;
+    }
+    #app {
+      width: 640px;
+      margin: 0rem auto;
+    }
+    input {
+      font-family: "Pragmata Pro", "SF Mono", monospace;
+      font-size: 2rem;
+      width: 100%;
+    }
+    input[type="text"] {
+      margin: 0;
+      border-radius: 4px;
+    }
+    button {
+      font-size: 1rem;
+      color: #444;
+      background-color: #ffffff;
+      border: none;
+      border-radius: 4px;
+      box-shadow: 0 1px 1px rgba(255,255,255,0.3) inset,
+        0 1px 1px rgba(0,0,0,0.3);
+      padding: 0.33rem 0.8rem;
+    }
+    button:active {
+      background: #007AFF;
+      color: white;
+    }
+    div + div {
+      margin-top: 1rem;
+    }
+    span {
+      display: inline-block;
+      margin-bottom: 0.33rem;
+      color: #262626;
+    }
+    .input {
+      display: flex;
+    }
+    .input input {
+      border: 1px solid #D4D4D4;
+      border-right: 0;
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+      z-index: 10;
+      background: white;
+      color: #262626;
+    }
+    .input input:invalid {
+      box-shadow: 0 0px 0px 2px orange;
+    }
+    .input input[readonly] {
+      border: 1px solid #c0c0c0;
+      border-right: 0;
+      cursor: default;
+      background: transparent;
+      color: #676767;
+    }
+    .input button {
+      margin: 0;
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      background: white url("./copy.png") no-repeat center center;
+      background-size: 40px 40px;
+      text-indent: -9000000px;
+      padding: 0 1.5rem;
+      border: 1px solid #D4D4D4;
+      box-shadow: none;
+    }
+    .input button:active {
+      background-color: #007AFF;
+    }
+    .btnNow {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      font-weight: bold;
+    }
+
+    @media (prefers-color-scheme: dark) {
       body {
-        font-family: --apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
         background: #2E2F30;
       }
       h1 {
-        position: relative;
-        width: 640px;
-        margin: 0rem auto;
-        text-align: left;
-        font-family: --apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
-        font-weight: bold;
-        font-size: 3rem;
-        margin-top: 4rem;
-        margin-bottom: 1rem;
         color: #666;
-        text-shadow: 0 1px 0px rgba(0,0,0,0.15);
-      }
-      #app {
-        width: 640px;
-        margin: 0rem auto;
-      }
-      input {
-        font-family: "Pragmata Pro", "SF Mono", monospace;
-        font-size: 2rem;
-        width: 100%;
-      }
-      input[type="text"] {
-        margin: 0;
-        border-radius: 4px;
       }
       button {
-        font-size: 1rem;
         color: #E0E5DC;
         background-color: #6C6C6C;
-        border: none;
-        border-radius: 4px;
         box-shadow: 0 1px 1px rgba(255,255,255,0.3) inset,
           0 1px 1px rgba(0,0,0,0.3);
-        padding: 0.33rem 0.8rem;
       }
       button:active {
-        background: #868586;
-      }
-      div + div {
-        margin-top: 1rem;
+        background-color: #868586;
       }
       span {
-        display: inline-block;
-        margin-bottom: 0.33rem;
         color: #999;
-      }
-      .input {
-        display: flex;
       }
       .input input {
         border: 1px solid #4F4E4F;
         border-right: 0;
-        border-top-right-radius: 0;
-        border-bottom-right-radius: 0;
-        z-index: 10;
         background: #454545;
         color: #C4C3C0;
       }
       .input input:invalid {
         box-shadow: 0 0px 0px 2px orange;
       }
+      .input input:invalid:focus {
+        outline: none;
+      }
       .input input[readonly] {
         border: 1px solid #3F3F41;
-        cursor: default;
+        border-right: 0;
         background: transparent;
         color: #676767;
       }
       .input button {
-        margin: 0;
-        border-top-left-radius: 0;
-        border-bottom-left-radius: 0;
-        background: #2E2F30 url("./copy.png") no-repeat center center;
-        background-size: 16px 16px;
-        color: #A5A5A6;
-        border: 1px solid #3F3F41;
-        box-shadow: none;
-        text-indent: -9000000px;
-        padding: 0 1.5rem;
+        background-color: #5C5C5C;
+        border: 1px solid #4F4F4F;
       }
       .input button:active {
-        background-color: #222;
+        background-color: #767576;
       }
-      .btnNow {
-        position: absolute;
-        right: 0;
-        bottom: 0;
-        font-weight: bold;
-      }
-    </style>
+    }
+  </style>
 </head>
 <body>
 <div id="app">
@@ -121,7 +170,7 @@
   <div>
     <label for="utc"><span>UTC:</span></label>
     <div class="input">
-      <input id="utc" v-model="utc" v-on:keyup="inputChangedUTC" type="text" required v-on:keydown.up="changeUTC(1,$event)" v-on:keydown.down="changeUTC(-1,$event)" pattern="[a-zA-Z]{3}, \d{2} [a-zA-Z]{3} -?\d{1,4} \d{2}:\d{2}:\d{2} GMT">
+      <input id="utc" v-model="utc" v-on:keyup="inputChangedUTC" type="text" required v-on:keydown.up="changeUTC(1,$event)" v-on:keydown.down="changeUTC(-1,$event)" pattern="[a-zA-Z]{3}, \d{2} [a-zA-Z]{3} -?\d{4} \d{2}:\d{2}:\d{2} GMT">
       <button v-on:click="copy('utc')" class="copy">Copy</button>
     </div>
   </div>
@@ -144,6 +193,7 @@
 <script>
 var ts = new Date();
 const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
+const daysOfTheWeek = ["mon,", "tue,", "wed,", "thu,", "fri,", "sat,", "sun,"]
 const utcValueMeaning = ["dow", "day", "month", "year", "hour", "min", "sec", "zone"]
 const isoValueMeaning = ["year", "month", "day", "hour", "min", "sec", "msec"]
 
@@ -153,6 +203,7 @@ bounds.set("sec", [0, 59, "min"])
 bounds.set("min", [0, 59, "hour"])
 bounds.set("hour", [0, 23, "day"])
 bounds.set("day", [1, undefined, "month"]) // day has a special logic
+bounds.set("dow", [0, 6, "day"]) // day of week update always affects day
 bounds.set("month", [1, months.length, "year"])
 
 var formatUnix = function(unix) {
@@ -175,13 +226,14 @@ var capitalizeFirstLetter = function(string) {
 }
 
 var updateVal = function(format, parts, name, diff) {
-  console.log(name, diff)
   let valueMeaning = getValueMeaningMap(format)
 
   ind = valueMeaning.indexOf(name)
 
   if (format == "utc" && name == "month") {
     val = months.indexOf(parts[ind].toLowerCase()) + diff
+  } else if (format == "utc" && name == "dow") {
+    val = daysOfTheWeek.indexOf(parts[ind].toLowerCase()) + diff
   } else if (name == "year" && parseInt(parts[ind], 10) == 100 && diff == -1) {
     return
   } else {
@@ -210,7 +262,7 @@ var updateVal = function(format, parts, name, diff) {
         max = currentMonthMax
       }
     }
-    if (name == "month" && format == "utc") {
+    if (format == "utc" && name == "month") {
       min--
       max--
     }
@@ -222,10 +274,16 @@ var updateVal = function(format, parts, name, diff) {
       val = min
       shouldUpdateNext = true
     }
+
+    if (name == "dow") {
+      shouldUpdateNext = true
+    }
   }
   
   if (format == "utc" && name == "month") {
     parts[ind] = capitalizeFirstLetter(months[val])
+  } else if (format == "utc" && name == "dow") {
+    parts[ind] = capitalizeFirstLetter(daysOfTheWeek[val])
   } else {
     parts[ind] = val.toString()
   }
@@ -418,6 +476,7 @@ var app = new Vue({
       var parts = e.target.value.split(/[\s:]+/); // separate by space or colon
       
       let valueIndex = this.getValueIndex(parts, selectionEnd)
+      console.log("huh, value index", valueIndex)
       if (valueIndex == -1) {
         console.log("valueIndex = -1, this should never happen")
         return
@@ -428,8 +487,8 @@ var app = new Vue({
         console.log("Time Zone update not supported",)
         return
       }
-      if (valueMeaning == "dow") {
-        valueMeaning = "day"
+      if (valueMeaning == "day") {
+        valueMeaning = "dow"
       }
 
       parts = updateVal("utc", parts, valueMeaning, diff)
