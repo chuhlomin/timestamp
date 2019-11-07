@@ -7,7 +7,8 @@
   <style>
     body {
       font-family: --apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
-      background: #e0e0e0;
+      background: #ECECEC;
+      margin: 0;
     }
     h1 {
       position: relative;
@@ -16,11 +17,17 @@
       text-align: left;
       font-family: --apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
       font-weight: bold;
-      font-size: 3rem;
-      margin-top: 4rem;
+      font-size: 2rem;
+      margin-top: 2rem;
       margin-bottom: 1rem;
-      text-shadow: 0 1px 0px rgba(0,0,0,0.15);
-      color: #aaa;
+      text-shadow: 0 1px 0px rgba(255,255,255,0.15);
+      color: #676767;
+    }
+    .btnNow {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      font-weight: bold;
     }
     #app {
       width: 640px;
@@ -59,6 +66,7 @@
     }
     .input {
       display: flex;
+      position: relative;
     }
     .input input {
       border: 1px solid #D4D4D4;
@@ -71,6 +79,7 @@
     }
     .input input:invalid {
       box-shadow: 0 0px 0px 2px orange;
+      outline: none;
     }
     .input input[readonly] {
       border: 1px solid #c0c0c0;
@@ -80,6 +89,7 @@
       color: #676767;
     }
     .input button {
+      position: relative;
       margin: 0;
       border-top-left-radius: 0;
       border-bottom-left-radius: 0;
@@ -93,11 +103,38 @@
     .input button:active {
       background-color: #007AFF;
     }
-    .btnNow {
+    .copied {
       position: absolute;
-      right: 0;
+      top: 0;
+      left: 0;
       bottom: 0;
-      font-weight: bold;
+      display: block;
+      content: "Copied";
+      margin-left: 100%;
+      padding-left: 0.6rem;
+      line-height: 2.3rem;
+      color: green;
+      cursor: default;
+      transition: opacity 0.1s ease;
+    }
+    .copied {
+      opacity: 0;
+      z-index: -1;
+    }
+    .play-animation .copied {
+      animation: fadeout 1s ease;
+    }
+    .show-label .copied {
+      opacity: 1;
+      animation: none;
+    }
+    @keyframes fadeout {
+      0% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0%;
+      }
     }
 
     @media (prefers-color-scheme: dark) {
@@ -106,6 +143,7 @@
       }
       h1 {
         color: #666;
+        text-shadow: 0 1px 0px rgba(0,0,0,0.15);
       }
       button {
         color: #E0E5DC;
@@ -158,6 +196,7 @@
     <div class="input">
       <input id="unix" v-model="unix" v-on:keyup="inputChangedUnix" type="text" required v-on:keydown.up="changeUnix(1,$event)" v-on:keydown.down="changeUnix(-1,$event)" pattern="-?[\d]+(.[\d]{3})?">
       <button v-on:click="copy('unix')" class="copy">Copy</button>
+      <div class="copied">Copied</div>
     </div>
   </div>
   <div>
@@ -165,6 +204,7 @@
     <div class="input">
       <input id="unixms" v-model="unixms" v-on:keyup="inputChangedUnixMs" type="text" required v-on:keydown.up="changeUnixMs(1,$event)" v-on:keydown.down="changeUnixMs(-1,$event)" pattern="-?\d+">
       <button v-on:click="copy('unixms')" class="copy">Copy</button>
+      <div class="copied">Copied</div>
     </div>
   </div>
   <div>
@@ -172,6 +212,7 @@
     <div class="input">
       <input id="utc" v-model="utc" v-on:keyup="inputChangedUTC" type="text" required v-on:keydown.up="changeUTC(1,$event)" v-on:keydown.down="changeUTC(-1,$event)" pattern="[a-zA-Z]{3}, \d{2} [a-zA-Z]{3} -?\d{4} \d{2}:\d{2}:\d{2} GMT">
       <button v-on:click="copy('utc')" class="copy">Copy</button>
+      <div class="copied">Copied</div>
     </div>
   </div>
   <div>
@@ -179,6 +220,7 @@
     <div class="input">
       <input id="iso" v-model="iso" v-on:keyup="inputChangedISO" type="text" required v-on:keydown.up="changeISO(1,$event)" v-on:keydown.down="changeISO(-1,$event)" pattern="\d{1,4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z">
       <button v-on:click="copy('iso')" class="copy">Copy</button>
+      <div class="copied">Copied</div>
     </div>
   </div>
   <div>
@@ -186,6 +228,7 @@
     <div class="input">
       <input id="locale" v-model="locale" type="text" readonly>
       <button v-on:click="copy('locale')" class="copy">Copy</button>
+      <div class="copied">Copied</div>
     </div>
   </div>
 </div>
@@ -331,6 +374,7 @@ var app = new Vue({
     utc: ts.toUTCString(),
     iso: ts.toISOString(),
     locale: ts.toLocaleString(),
+    timers: new Map()
   },
   methods: {
     inputChangedUnix: function (e) {
@@ -448,6 +492,20 @@ var app = new Vue({
       document.execCommand("copy");
       el.selectionStart = selectionStart;
       el.selectionEnd = selectionEnd;
+
+      if (this.timers.has(input)) {
+        clearTimeout(this.timers.get(input))
+      }
+
+      el.parentElement.classList.add('show-label')
+      timer = setTimeout(function () {
+        el.parentElement.classList.add('play-animation')
+        el.parentElement.classList.remove('show-label')
+        timer = setTimeout(function () {
+          el.parentElement.classList.remove('play-animation')
+        }, 1000) // length of fade out
+      }, 1000) // length before fade out
+      this.timers.set(input, timer)
     },
     getValueIndex: function(parts, selectionStart) {
       var valueStopIndex = 0
