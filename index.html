@@ -136,6 +136,22 @@
         opacity: 0%;
       }
     }
+    kbd {
+      display: inline-block;
+      padding: 3px 5px;
+      font-size: 11px;
+      line-height: 10px;
+      color: #444d56;
+      vertical-align: middle;
+      background-color: #fafbfc;
+      border: solid 1px #c6cbd1;
+      border-bottom-color: #959da5;
+      border-radius: 3px;
+      box-shadow: inset 0 -1px 0 #959da5;
+    }
+    .help {
+      font-size: 0.8rem;
+    }
 
     @media (prefers-color-scheme: dark) {
       body {
@@ -181,6 +197,13 @@
       }
       .input button:active {
         background-color: #767576;
+      }
+      kbd {
+        color: #fafbfc;
+        background-color: #444d56;
+        border: solid 1px #353E46;
+        border-bottom-color: #272F37;
+        box-shadow: inset 0 -1px 0 #272F37;
       }
     }
   </style>
@@ -230,6 +253,10 @@
       <button v-on:click="copy('locale')" class="copy">Copy</button>
       <div class="copied">Copied</div>
     </div>
+  </div>
+  <div class="help">
+    <p><kbd>↑</kbd> / <kbd>↓</kbd> – increase/decrease value under cursor</p>
+    <p><a href="http://github.com/chuhlomin/timestamp">Source code</a></p>
   </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
