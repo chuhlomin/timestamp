@@ -23,6 +23,18 @@
       text-shadow: 0 1px 0px rgba(255,255,255,0.15);
       color: #676767;
     }
+    a {
+      transition-property: color;
+      transition-duration: .33s;
+      transition-timing-function: ease-out;
+    }
+    a:visited {
+      color: #E0B0FF;
+    }
+    a:hover {
+      color: #66f;
+      transition: none;
+    }
     .btnNow {
       position: absolute;
       right: 0;
@@ -156,10 +168,20 @@
     @media (prefers-color-scheme: dark) {
       body {
         background: #2E2F30;
+        color: #aaa;
       }
       h1 {
         color: #666;
         text-shadow: 0 1px 0px rgba(0,0,0,0.15);
+      }
+      a {
+        color: #6BF;
+      }
+      a:visited {
+        color: #E0B0FF;
+      }
+      a:hover {
+        color: #f8ff83;
       }
       button {
         color: #E0E5DC;
