@@ -31,6 +31,9 @@ steps:
       docker_image: cr.chuhlomin.com/timestamp:${DRONE_COMMIT}
       docker_network: delta_default
       docker_network_alias: timestamp
+      labels:
+        caddy: ts.chuhlomin.com
+        caddy.reverse_proxy: timestamp:80
       log_driver: loki
       log_opt:
         loki-url: http://127.0.0.1:3100/api/prom/push
