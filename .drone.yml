@@ -3,9 +3,14 @@ kind: pipeline
 type: docker
 name: default
 
+platform:
+  os: linux
+  arch: amd64
+
 steps:
   - name: cr
     image: plugins/docker
+    pull: if-not-exists
     settings:
       registry: cr.chuhlomin.com
       repo: cr.chuhlomin.com/timestamp
@@ -23,7 +28,8 @@ steps:
         - master
 
   - name: deploy
-    image: cr.chuhlomin.com/docker-run:latest
+    image: cr.chuhlomin.com/docker-run:0.1
+    pull: if-not-exists
     settings:
       server: delta.chuhlomin.com
       username: drone
