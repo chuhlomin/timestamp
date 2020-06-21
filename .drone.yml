@@ -40,9 +40,6 @@ steps:
       labels:
         caddy: ts.chuhlomin.com
         caddy.reverse_proxy: timestamp:80
-      log_driver: loki
-      log_opt:
-        loki-url: http://127.0.0.1:3100/api/prom/push
     environment:
       SSH_KEY:
         from_secret: ssh_key
