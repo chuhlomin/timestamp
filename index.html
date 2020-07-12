@@ -43,7 +43,7 @@
     }
     #app {
       width: 640px;
-      margin: 0rem auto;
+      margin: 0rem auto 2rem;
     }
     input {
       font-family: "Pragmata Pro", "SF Mono", monospace;
@@ -229,6 +229,7 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="likely.css">
 </head>
 <body>
 <div id="app">
@@ -279,6 +280,12 @@
   <div class="help">
     <p><kbd>▴</kbd> / <kbd>▾</kbd> – increase/decrease value under cursor</p>
     <p><a href="http://github.com/chuhlomin/timestamp">Source code</a></p>
+  </div>
+  <div class="likely">
+    <div class="telegram">Отправить</div>
+    <div class="twitter" data-via="chuhlomin">Твитнуть</div>
+    <div class="facebook">Поделиться</div>
+    <div class="vkontakte">Поделиться</div>
   </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
@@ -760,5 +767,6 @@ var app = new Vue({
   }
 })
 </script>
+<script src="likely.js"></script>
 </body>
 </html>

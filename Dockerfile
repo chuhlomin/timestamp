@@ -2,6 +2,4 @@ FROM nginx:alpine
 
 ADD nginx.conf /etc/nginx/nginx.conf
 
-ADD copy.png /usr/share/nginx/html/copy.png
-ADD favicon.png /usr/share/nginx/html/favicon.png
-ADD index.html /usr/share/nginx/html/
+ADD index.html copy.png favicon.png likely.css likely.js /usr/share/nginx/html/
