@@ -26,9 +26,11 @@ jobs:
         uses: crazy-max/ghaction-docker-meta@v1
         with:
           images: cr.chuhlomin.com/timestamp
+          tag-sha: true
 
       - name: Build and push to CR
         uses: docker/build-push-action@v2
         with:
+          push: true
           tags: ${{ steps.docker_meta.outputs.tags }}
           labels: ${{ steps.docker_meta.outputs.labels }}
