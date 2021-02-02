@@ -23,6 +23,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Prepare Docker tags and labels
+        id: docker_meta
         uses: crazy-max/ghaction-docker-meta@v1
         with:
           images: cr.chuhlomin.com/timestamp
