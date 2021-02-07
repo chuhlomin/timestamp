@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: timestamp
-          image: cr.chuhlomin.com/timestamp:sha-5a9457d
+          image: cr.chuhlomin.com/timestamp:main
           ports:
             - containerPort: 80
       imagePullSecrets:
