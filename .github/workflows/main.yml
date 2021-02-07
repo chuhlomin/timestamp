@@ -63,6 +63,6 @@ jobs:
 
       - name: Deploy
         run: |-
-          ./kustomize edit set image cr.chuhlomin.com/timestamp:main=cr.chuhlomin.com/timestamp:sha-$GITHUB_SHA
+          ./kustomize edit set image cr.chuhlomin.com/timestamp:sha-${GITHUB_SHA::7}
           ./kustomize build . | kubectl apply -f -
           kubectl rollout status deployment/$DEPLOYMENT_NAME
