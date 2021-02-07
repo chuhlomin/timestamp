@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: timestamp
+  labels:
+    app: timestamp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: timestamp
+  template:
+    metadata:
+      labels:
+        app: timestamp
+    spec:
+      containers:
+        - name: timestamp
+          image: cr.chuhlomin.com/timestamp:sha-5a9457d
+          ports:
+            - containerPort: 80
+      imagePullSecrets:
+        - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: timestamp
+spec:
+  type: NodePort
+  selector:
+    app: timestamp
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: timestamp
+spec:
+  domains:
+    - ts.chuhlomin.com
+---
+apiVersion: networking.gke.io/v1beta1
+kind: FrontendConfig
+metadata:
+  name: ssl-redirect-timestamp
+spec:
+  redirectToHttps:
+    enabled: true
+    responseCodeName: MOVED_PERMANENTLY_DEFAULT
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: timestamp
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: timestamp
+    networking.gke.io/managed-certificates: timestamp
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+    networking.gke.io/v1beta1.FrontendConfig: ssl-redirect-timestamp
+spec:
+  backend:
+    serviceName: timestamp
+    servicePort: 80
