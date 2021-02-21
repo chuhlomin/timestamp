@@ -27,7 +27,7 @@ kind: Service
 metadata:
   name: timestamp
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: timestamp
   ports:
