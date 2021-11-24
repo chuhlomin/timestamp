@@ -5,6 +5,7 @@
   <title>Timestamp panel</title>
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="stylesheet" href="likely.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&display=swap');
 
@@ -14,8 +15,8 @@
       margin: 0;
     }
     h1 {
-      position: relative;
-      width: 640px;
+      display: flex;
+      align-items: center;
       margin: 0rem auto;
       text-align: left;
       font-family: --apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -38,6 +39,9 @@
       color: #66f;
       transition: none;
     }
+    h1 span {
+      flex-grow: 1;
+    }
     .github-icon {
       width: 1.5rem;
       height: 1.5rem;
@@ -45,10 +49,8 @@
       opacity: 0.6;
     }
     .btnNow {
-      position: absolute;
-      right: 0;
-      bottom: 0;
       font-weight: bold;
+      outline-width: 0;
     }
     #app {
       width: 640px;
@@ -125,6 +127,10 @@
       padding: 0 1.5rem;
       border: 1px solid #D4D4D4;
       box-shadow: none;
+      outline-width: 0;
+    }
+    .input button:focus {
+      z-index: 10;
     }
     .input button:active {
       background-color: #007AFF;
@@ -250,15 +256,25 @@
         background-color: #5C5C5C;
       }
     }
+    @media screen and (max-width: 680px) {
+      #app {
+        width: 100%;
+        padding: 0 20px;
+        box-sizing: border-box;
+      }
+      .copied {
+        display: none;
+      }
+      .input input {
+        max-width: calc(100% - 40px);
+      }
+    }
   </style>
 </head>
 <body>
 <div id="app">
   <h1>
-    Timestamp panel
-    <a href="http://github.com/chuhlomin/timestamp">
-      <img class="github-icon" alt="github" src="https://external-content.duckduckgo.com/ip3/github.com.ico" />
-    </a>
+    <span>Timestamp panel</span>
     <button class="btnNow" v-on:click="now">Now</button>
   </h1>
   <div>
