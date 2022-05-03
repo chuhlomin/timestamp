@@ -7,6 +7,24 @@
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="stylesheet" href="likely.css">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Convert timestamp across different formats">
+  <meta name="keywords" content="timestamp, unix time, iso, utc, convert">
+  <meta name="author" content="Konstantin Chukhlomin">
+  <!-- OpenGraph Card -->
+  <meta property="og:image" content="https://ts.chuhlomin.com/og.png">
+  <meta property="og:image:width" content="1920">
+  <meta property="og:image:height" content="960">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Timestamp panel">
+  <meta property="og:url" content="https://ts.chuhlomin.com">
+  <meta property="og:description" content="Convert timestamp across different formats">
+  <!-- Twitter Card -->
+  <meta name="twitter:url" content="https://ts.chuhlomin.com">
+  <meta name="twirrer:domain" content="transiter.app">
+  <meta name="twitter:title" content="Timestamp panel">
+  <meta name="twitter:description" content="Convert timestamp across different formats">
+  <meta name="twitter:image" content="https://ts.chuhlomin.com/og.png">
+  <meta name="twitter:card" content="summary_large_image">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
 
@@ -98,6 +116,7 @@
       position: relative;
     }
     .input input {
+      padding-left: 0.33rem;
       border: 1px solid #D4D4D4;
       border-right: 0;
       border-top-right-radius: 0;
@@ -151,6 +170,7 @@
       transition: opacity 0.1s ease;
     }
     .copied {
+      display: none;
       opacity: 0;
       z-index: -1;
     }
@@ -257,7 +277,7 @@
         background-color: #5C5C5C;
       }
     }
-    @media screen and (max-width: 680px) {
+    @media screen and (max-width: 540px) {
       #app {
         width: 100%;
         padding: 0 20px;
