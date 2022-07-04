@@ -5,7 +5,7 @@ metadata:
   labels:
     app: {{ .app }}
 spec:
-  replicas: 2
+  replicas: {{ .replicas }}
   selector:
     matchLabels:
       app: {{ .app }}
@@ -60,7 +60,7 @@ spec:
                 port:
                   number: 80
             path: /
-            pathType: Prefix
+            pathType: ImplementationSpecific
   tls:
     - hosts:
         - {{ .domain }}
