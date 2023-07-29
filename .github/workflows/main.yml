@@ -15,26 +15,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Build and push to CR
-        uses: chuhlomin/actions/docker-build-push@main
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.PKG_TOKEN }}
-          image_name: ${{ env.DOCKER_IMAGE }}
-          tags: ${{ env.DOCKER_IMAGE }}:${{ github.sha }}
+      - name: Build
+        run: |
+          mkdir output
+          mv index.html copy.png favicon.png og.png favicon.ico likely.css likely.js output
 
-      - name: Deploy to GKE
-        uses: chuhlomin/actions/deploy-gke@main
+      - name: Publish
+        uses: cloudflare/wrangler-action@2.0.0
         with:
-          service_account_key: ${{ secrets.GKE_SA_KEY }}
-          project_id: ${{ secrets.GKE_PROJECT }}
-          cluster_name: cluster-east
-          location: us-east4-c
-          template_path: kube.template.yml
-          vars: |
-            image: ${{ env.DOCKER_IMAGE }}:${{ github.sha }}
-            app: timestamp
-            domain: ts.chuhlomin.com
-            replicas: 2
-          rollout_status_wait: deployment/timestamp
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          command: pages publish output --project-name=timestamp --branch=main --commit-dirty=true
