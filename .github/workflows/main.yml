@@ -45,11 +45,9 @@ jobs:
 
       - name: Commit screenshot (if changed)
         run: |
-          if git diff --quiet HEAD^ HEAD screenshot.png; then
-            echo "Screenshot not changed"
-            exit 0
+          if (git status --porcelain | grep screenshot.png)
+          then
+            git add screenshot.png
+            git commit -m "Update screenshot [skip ci]"
+            git push
           fi
-
-          git add screenshot.png
-          git commit -m "Update screenshot"
-          git push
