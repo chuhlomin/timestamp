@@ -22,7 +22,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
-          command: pages publish output --project-name=timestamp --branch=main --commit-dirty=true
+          command: pages deploy output --project-name=timestamp --branch=main --commit-dirty=true
 
       - name: Make screenshot
         uses: karol-brejna-i/webpage-screenshot-action@v1 # JS, Puppeteer
@@ -31,6 +31,7 @@ jobs:
           url: file://${{github.workspace}}/index.html
           mode: page
           output: screenshot.png
+          width: 1024
 
       - name: Upload screenshot
         uses: actions/upload-artifact@v2
