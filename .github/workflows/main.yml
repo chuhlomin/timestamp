@@ -4,42 +4,38 @@ on:
   push:
     branches:
       - main
+  pull_request:
 
 jobs:
   main:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build
         run: |
           mkdir output
           mv index.html copy.png favicon.png og.png favicon.ico likely.css likely.js output
 
-      - name: Publish
-        uses: cloudflare/wrangler-action@2.0.0
-        with:
-          apiToken: ${{ secrets.CF_API_TOKEN }}
-          accountId: ${{ secrets.CF_ACCOUNT_ID }}
-          command: pages deploy output --project-name=timestamp --branch=main --commit-dirty=true
-
       - name: Make screenshot
-        uses: karol-brejna-i/webpage-screenshot-action@v1 # JS, Puppeteer
+        uses: chuhlomin/webpage-screenshot-action@main
         with:
-          # url: https://ts.chuhlomin.com
           url: file://${{github.workspace}}/output/index.html
           mode: page
           output: screenshot.png
-          width: "1024"
+          width: 1024
+          height: 768
 
       - name: Upload screenshot
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
+        if: github.event_name == 'pull_request'
         with:
           name: screenshot
           path: screenshot.png
 
       - name: Commit screenshot (if changed)
+        if: github.event_name == 'push'
         run: |
           if (git status --porcelain | grep screenshot.png)
           then
@@ -49,3 +45,11 @@ jobs:
             git commit -m "Update screenshot [skip ci]"
             git push
           fi
+
+      - name: Publish
+        uses: cloudflare/wrangler-action@2.0.0
+        if: github.event_name == 'push'
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          command: pages deploy output --project-name=timestamp --branch=main --commit-dirty=true
