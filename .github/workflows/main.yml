@@ -28,7 +28,7 @@ jobs:
         uses: karol-brejna-i/webpage-screenshot-action@v1 # JS, Puppeteer
         with:
           # url: https://ts.chuhlomin.com
-          url: file://${{github.workspace}}/index.html
+          url: file://${{github.workspace}}/output/index.html
           mode: page
           output: screenshot.png
           width: 1024
@@ -39,15 +39,12 @@ jobs:
           name: screenshot
           path: screenshot.png
 
-      - name: Configure git user
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-
       - name: Commit screenshot (if changed)
         run: |
           if (git status --porcelain | grep screenshot.png)
           then
+            git config user.name github-actions
+            git config user.email github-actions@github.com
             git add screenshot.png
             git commit -m "Update screenshot [skip ci]"
             git push
