@@ -21,12 +21,11 @@ jobs:
       - name: Make screenshot
         uses: chuhlomin/webpage-screenshot-action@main
         with:
-          # url: https://ts.chuhlomin.com
           url: file://${{github.workspace}}/output/index.html
           mode: page
           output: screenshot.png
-          width: "1024"
-          height: "768"
+          width: 1024
+          height: 768
 
       - name: Upload screenshot
         uses: actions/upload-artifact@v3
