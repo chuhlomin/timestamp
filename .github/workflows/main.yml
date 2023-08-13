@@ -5,6 +5,7 @@ on:
     branches:
       - main
   pull_request:
+  workflow_dispatch:
 
 jobs:
   main:
@@ -36,7 +37,7 @@ jobs:
           path: screenshot.png
 
       - name: Commit screenshot (if changed)
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: |
           if (git status --porcelain | grep screenshot.png)
           then
