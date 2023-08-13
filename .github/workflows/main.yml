@@ -26,6 +26,7 @@ jobs:
           output: screenshot.png
           width: 1024
           height: 768
+          deviceScaleFactor: 2
 
       - name: Upload screenshot
         uses: actions/upload-artifact@v3
