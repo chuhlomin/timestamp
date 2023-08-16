@@ -29,6 +29,25 @@ jobs:
           height: 768
           deviceScaleFactor: 2
 
+      - name: Setup Image Magic
+        uses: mfinelli/setup-imagemagick@v2
+
+      - name: Round corners and shadow
+        run: |
+          width=$(identify -format "%w" "screenshot.png")
+          height=$(identify -format "%h" "screenshot.png")
+          convert \
+              screenshot.png \
+              \( -size ${width}x${height} xc:black -fill white \
+              -draw "roundRectangle 0,0,${width},${height},20,20" \) \
+              -alpha Off -compose CopyOpacity -composite \
+              screenshot.png.temp
+          convert \
+              screenshot.png.temp \
+              \( +clone -background black -shadow 25x80+0+16 \) \
+              -background none \
+              -reverse -layers merge screenshot.png
+
       - name: Upload screenshot
         uses: actions/upload-artifact@v3
         if: github.event_name == 'pull_request'
