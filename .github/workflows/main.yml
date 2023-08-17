@@ -20,7 +20,7 @@ jobs:
           mv index.html copy.png favicon.png og.png favicon.ico likely.css likely.js output
 
       - name: Make screenshot
-        uses: chuhlomin/webpage-screenshot-action@main
+        uses: chuhlomin/actions/screenshot@main
         with:
           url: file://${{github.workspace}}/output/index.html
           mode: page
@@ -28,48 +28,14 @@ jobs:
           width: 1024
           height: 768
           deviceScaleFactor: 2
+          cornerRadius: 20
+          addShadow: true
+          uploadArtifact: ${{ github.event_name == 'pull_request' }}
+          commit: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
 
-      - name: Setup Image Magic
-        uses: mfinelli/setup-imagemagick@v2
-
-      - name: Round corners and shadow
-        run: |
-          width=$(identify -format "%w" "screenshot.png")
-          height=$(identify -format "%h" "screenshot.png")
-          convert \
-              screenshot.png \
-              \( -size ${width}x${height} xc:black -fill white \
-              -draw "roundRectangle 0,0,${width},${height},20,20" \) \
-              -alpha Off -compose CopyOpacity -composite \
-              screenshot.png.temp
-          convert \
-              screenshot.png.temp \
-              \( +clone -background black -shadow 25x80+0+16 \) \
-              -background none \
-              -reverse -layers merge screenshot.png
-
-      - name: Upload screenshot
-        uses: actions/upload-artifact@v3
-        if: github.event_name == 'pull_request'
-        with:
-          name: screenshot
-          path: screenshot.png
-
-      - name: Commit screenshot (if changed)
-        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-        run: |
-          if (git status --porcelain | grep screenshot.png)
-          then
-            git config user.name github-actions
-            git config user.email github-actions@github.com
-            git add screenshot.png
-            git commit -m "Update screenshot [skip ci]"
-            git push
-          fi
-
-      - name: Publish
+      - name: Deploy
         uses: cloudflare/wrangler-action@v3.0.2
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && !contains(github.event.head_commit.message, '[skip deploy]')
         with:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
