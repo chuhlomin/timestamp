@@ -25,8 +25,8 @@ jobs:
           url: file://${{github.workspace}}/output/index.html
           mode: page
           output: screenshot.png
-          width: 1024
-          height: 768
+          width: 600
+          height: 600
           deviceScaleFactor: 2
           cornerRadius: 20
           addShadow: true
