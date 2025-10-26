@@ -20,6 +20,7 @@ jobs:
           mv index.html copy.png favicon.png og.png favicon.ico likely.css likely.js output
 
       - name: Make screenshot
+        if: false
         uses: chuhlomin/actions/screenshot@main
         with:
           url: file://${{github.workspace}}/output/index.html
