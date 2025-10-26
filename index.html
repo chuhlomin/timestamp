@@ -490,7 +490,31 @@ var app = new Vue({
     locale: ts.toLocaleString(),
     timers: new Map()
   },
+  mounted: function() {
+    // Check if there's a hash in the URL and populate values
+    if (window.location.hash) {
+      var hashValue = window.location.hash.substring(1);
+      if (hashValue && !isNaN(hashValue)) {
+        ts = new Date();
+        ts.setTime(parseFloat(hashValue) * 1000);
+        this.unix = formatUnix((ts.getTime()/1000).toString());
+        this.unixms = ts.getTime().toString();
+        this.utc = ts.toUTCString();
+        this.iso = ts.toISOString();
+        this.locale = ts.toLocaleString();
+      }
+    }
+  },
   methods: {
+    updateHash: function() {
+      // Update URL hash with unix timestamp
+      // If milliseconds are .000, omit them; otherwise include them
+      var hashValue = this.unix;
+      if (hashValue.endsWith('.000')) {
+        hashValue = hashValue.substring(0, hashValue.length - 4);
+      }
+      history.replaceState(null, null, '#' + hashValue);
+    },
     inputChangedUnix: function (e) {
       if (!e.target.checkValidity()) {
         return
@@ -512,6 +536,7 @@ var app = new Vue({
       this.unixms = ts.getTime().toString();
       this.iso = ts.toISOString();
       this.locale = ts.toLocaleString();
+      this.updateHash();
     },
     inputChangedUnixMs: function (e) {
       if (!e.target.checkValidity()) {
@@ -520,11 +545,12 @@ var app = new Vue({
 
       ts = new Date();
       ts.setTime(this.unixms);
-      
+
       this.unix = formatUnix((ts.getTime()/1000).toString());
       this.utc = ts.toUTCString();
       this.iso = ts.toISOString();
       this.locale = ts.toLocaleString();
+      this.updateHash();
     },
     inputChangedUTC: function(e) {
       if (!e.target.checkValidity()) {
@@ -560,6 +586,8 @@ var app = new Vue({
       newDayOfWeek = ts.toUTCString().split(",")[0]
       this.utc = newDayOfWeek + "," + this.utc.split(",")[1]
 
+      this.updateHash();
+
       Vue.nextTick(function () {
         document.getElementById('utc').setSelectionRange(selectionStart, selectionEnd)
       })
@@ -588,6 +616,7 @@ var app = new Vue({
       this.unixms = ts.getTime().toString();
       this.utc = ts.toUTCString();
       this.locale = ts.toLocaleString();
+      this.updateHash();
     },
     now: function() {
       ts = new Date();
@@ -597,6 +626,7 @@ var app = new Vue({
       this.utc = ts.toUTCString();
       this.iso = ts.toISOString();
       this.locale = ts.toLocaleString();
+      this.updateHash();
     },
     copy: function(input) {
       var el = document.getElementById(input)
@@ -665,6 +695,7 @@ var app = new Vue({
 
       parts = updateVal("utc", parts, valueMeaning, diff)
       this.utc = formatUTC(parts)
+      this.updateHash();
       Vue.nextTick(function () {
         document.getElementById('utc').setSelectionRange(selectionStart, selectionEnd)
       })
@@ -694,6 +725,7 @@ var app = new Vue({
 
       parts = updateVal("iso", parts, valueMeaning, diff)
       this.iso = formatISO(parts)
+      this.updateHash();
       Vue.nextTick(function () {
         document.getElementById('iso').setSelectionRange(selectionStart, selectionEnd)
       })
@@ -711,7 +743,8 @@ var app = new Vue({
         return
       }
       this.unixms = newValue
-      
+      this.updateHash();
+
       Vue.nextTick(function () {
         document.getElementById('unixms').setSelectionRange(selectionStart, selectionEnd)
       })
@@ -811,7 +844,9 @@ var app = new Vue({
           }
         }
       }
-      
+
+      this.updateHash();
+
       Vue.nextTick(function () {
         document.getElementById('unix').setSelectionRange(selectionStart, selectionEnd)
       })
